@@ -1,0 +1,111 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   get_next_line_bonus.c                              :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: ahel-bah <ahel-bah@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2021/12/09 21:46:15 by ahel-bah          #+#    #+#             */
+/*   Updated: 2021/12/10 18:23:20 by ahel-bah         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "get_next_line_bonus.h"
+
+char	*ft_get_line_after(char *buffer)
+{
+	int		i;
+	int		j;
+	char	*the_rest;
+
+	i = 0;
+	j = 0;
+	while (buffer[i] && buffer[i] != '\n')
+		i++;
+	if (buffer[i] == '\0')
+		return (0);
+	if (buffer[i] == '\n')
+		i++;
+	the_rest = malloc(sizeof(char) * ((ft_strlen(buffer) - i) + 1));
+	if (the_rest == 0)
+		return (0);
+	j = 0;
+	while (buffer[i])
+		the_rest[j++] = buffer[i++];
+	the_rest[j] = '\0';
+	if (ft_strlen(the_rest) != 0)
+		return (the_rest);
+	free(the_rest);
+	return (0);
+}
+
+char	*ft_get_line_before(char *buffer)
+{
+	int		i;
+	char	*s_before;
+	int		j;
+
+	i = 0;
+	while (buffer[i] && buffer[i] != '\n')
+		i++;
+	if (buffer[i] == '\n')
+		i++;
+	s_before = malloc((i + 1) * sizeof(char));
+	if (s_before == 0)
+	{
+		free(buffer);
+		return (0);
+	}
+	j = 0;
+	while (j < i)
+	{
+		s_before[j] = buffer[j];
+		j++;
+	}
+	s_before[j] = '\0';
+	return (s_before);
+}
+
+char	*ft_read_file(char *buffer, int fd)
+{
+	int		read_bytes;
+	char	*new;
+
+	read_bytes = 1;
+	new = malloc(sizeof(char) * (BUFFER_SIZE) + 1);
+	if (new == 0)
+		return (0);
+	while (read_bytes != 0 && ft_strchr(buffer) == 0)
+	{
+		read_bytes = read(fd, new, BUFFER_SIZE);
+		if (read_bytes == -1)
+		{
+			free(new);
+			return (0);
+		}
+		new[read_bytes] = '\0';
+		if (read_bytes == 0)
+			break ;
+		buffer = ft_strjoin(buffer, new);
+	}
+	free(new);
+	return (buffer);
+}
+
+char	*get_next_line(int fd)
+{
+	static char	*buffer[1024];
+	char		*ret;
+	char		*tobefreed;
+
+	if (buffer[fd] < 0 || BUFFER_SIZE <= 0)
+		return (0);
+	buffer[fd] = ft_read_file(buffer[fd], fd);
+	if (buffer[fd] == 0)
+		return (0);
+	ret = ft_get_line_before(buffer[fd]);
+	tobefreed = buffer[fd];
+	buffer[fd] = ft_get_line_after(buffer[fd]);
+	free(tobefreed);
+	return (ret);
+}
